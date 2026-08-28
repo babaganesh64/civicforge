@@ -95,11 +95,15 @@ public class ChallengeService {
         return buildDetailResponse(challenge);
     }
 
-    public ChallengeDetailResponse attachEvidence(UUID challengeId, MultipartFile file, String description, UUID actorId) {
+    public ChallengeDetailResponse attachEvidence(UUID challengeId, MultipartFile file, String description, UUID actorId, String actorRole) {
         Challenge challenge = challengeRepository.findById(challengeId)
             .orElseThrow(() -> new CivicForgeException(ErrorCode.CHALLENGE_NOT_FOUND, "Challenge not found", HttpStatus.NOT_FOUND));
 
-        if (!challenge.getSubmittedBy().equals(actorId)) {
+        boolean isSubmitter = challenge.getSubmittedBy().equals(actorId);
+        boolean isGovernment = "GOVERNMENT_MANAGER".equals(actorRole) || "GOVERNMENT_REVIEWER".equals(actorRole);
+        boolean isPlatformAdmin = "PLATFORM_ADMIN".equals(actorRole);
+
+        if (!isSubmitter && !isGovernment && !isPlatformAdmin) {
             throw new CivicForgeException(ErrorCode.CHALLENGE_ACCESS_DENIED, "Only submitter can attach evidence", HttpStatus.FORBIDDEN);
         }
 

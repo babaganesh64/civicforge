@@ -27,7 +27,6 @@ public class DashboardController {
 
     @GetMapping("/metrics")
     @PreAuthorize("isAuthenticated()")
-    @org.springframework.cache.annotation.Cacheable(value = "dashboards", key = "#principal.getUsername()")
     public ResponseEntity<ApiResponse<DashboardMetricsResponse>> getMetrics(
             @AuthenticationPrincipal CivicForgeUserDetails principal) {
         
