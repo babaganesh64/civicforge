@@ -1,6 +1,8 @@
 package com.civicforge.audit.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -46,6 +48,7 @@ public class AuditEvent {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb", updatable = false)
     private String metadata;
 

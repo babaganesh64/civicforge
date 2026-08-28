@@ -1,6 +1,8 @@
 package com.civicforge.challenges.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 
 import java.time.Instant;
@@ -40,6 +42,7 @@ public class ChallengeHistory {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String metadata;
 

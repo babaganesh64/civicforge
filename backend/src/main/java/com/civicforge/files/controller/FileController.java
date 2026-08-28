@@ -37,7 +37,7 @@ public class FileController {
         @RequestParam String purpose
     ) {
         CivicForgeUserDetails user = principal();
-        FileMetadata metadata = fileStorageService.storeFile(file, user.getId(), purpose);
+        FileMetadata metadata = fileStorageService.storeFile(file, user.getUserId(), purpose);
         FileUploadResponse response = new FileUploadResponse(
             metadata.getId(),
             metadata.getOriginalFilename(),
@@ -53,7 +53,7 @@ public class FileController {
         FileMetadata metadata = fileMetadataRepository.findById(id)
             .orElseThrow(() -> new CivicForgeException(ErrorCode.NOT_FOUND, "File not found", HttpStatus.NOT_FOUND));
 
-        if (!metadata.getOwnerId().equals(user.getId()) && !user.getRole().name().startsWith("GOVERNMENT_")) {
+        if (!metadata.getOwnerId().equals(user.getUserId()) && !user.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "").startsWith("GOVERNMENT_")) {
             throw new CivicForgeException(ErrorCode.FORBIDDEN, "Access denied", HttpStatus.FORBIDDEN);
         }
 

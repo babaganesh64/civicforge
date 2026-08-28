@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useQueryClient } from '@tanstack/react-query';
 import { useChallenges } from '@/hooks/useChallenges';
 import { useAuth } from '@/lib/auth-hooks';
+import { useSubmitBulkJob } from '@/hooks/useBulkOperations';
 import { UserRole } from '@/types/user';
 import { ChallengeStatus, ChallengePriority, ChallengeListItem } from '@/types/challenge';
 import { ChallengeFilterBar } from '@/components/challenges/challenge-filter-bar';
@@ -13,7 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
 import { BulkToolbar } from '@/components/data-table/bulk-toolbar';
 import { StatusBadge } from '@/components/common/status-badge';
-import { Plus, MoreHorizontal, Eye, CheckCircle, Archive } from 'lucide-react';
+import { BulkProgressDrawer } from '@/components/bulk/bulk-progress-drawer';
+import { Plus, MoreHorizontal, Eye, CheckCircle, Archive, Send, FileEdit, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ColumnDef } from '@tanstack/react-table';
@@ -23,6 +26,7 @@ export default function ChallengesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
@@ -35,6 +39,7 @@ export default function ChallengesPage() {
   const [size, setSize] = useState(parseInt(searchParams.get('size') || '20', 10));
 
   const [rowSelection, setRowSelection] = useState({});
+  const [bulkJobId, setBulkJobId] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -54,6 +59,8 @@ export default function ChallengesPage() {
     page,
     size,
   });
+
+  const submitBulkJob = useSubmitBulkJob();
 
   const handleFilterChange = (newFilters: typeof filters) => {
     setFilters(newFilters);
@@ -176,6 +183,29 @@ export default function ChallengesPage() {
   const selectedCount = Object.keys(rowSelection).length;
   const selectedRows = data?.content.filter((_, idx) => (rowSelection as Record<string, boolean>)[idx]) || [];
 
+  const handleBulkAction = async (operationType: string, params?: Record<string, any>) => {
+    const itemIds = selectedRows.map(r => r.id);
+    if (itemIds.length === 0) return;
+    
+    try {
+      const response = await submitBulkJob.mutateAsync({
+        operationType,
+        itemIds,
+        parameters: params
+      });
+      setBulkJobId(response.id);
+    } catch (err) {
+      console.error("Bulk job submission failed", err);
+      alert("Failed to submit bulk operation.");
+    }
+  };
+
+  const handleDrawerClose = () => {
+    setBulkJobId(null);
+    setRowSelection({});
+    queryClient.invalidateQueries({ queryKey: ['challenges'] });
+  };
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -203,8 +233,31 @@ export default function ChallengesPage() {
           selectedCount={selectedCount}
           onClear={() => setRowSelection({})}
           actions={[
-            { label: 'Export', onClick: () => console.log('Export', selectedRows), icon: <Archive className="w-4 h-4 mr-2" /> }
-            // Add more bulk actions as needed
+            { 
+              label: 'Publish Selected', 
+              onClick: () => handleBulkAction('PUBLISH'), 
+              icon: <Send className="w-4 h-4 mr-2" /> 
+            },
+            { 
+              label: 'Change Status', 
+              onClick: () => {
+                const newStatus = prompt("Enter new status (e.g. IN_PROGRESS, RESOLVED):");
+                if (newStatus) {
+                  handleBulkAction('CHANGE_STATUS', { status: newStatus });
+                }
+              }, 
+              icon: <FileEdit className="w-4 h-4 mr-2" /> 
+            },
+            { 
+              label: 'Assign Organization', 
+              onClick: () => {
+                const orgId = prompt("Enter Organization ID to assign:");
+                if (orgId) {
+                  handleBulkAction('ASSIGN_ORGANIZATION', { organizationId: orgId });
+                }
+              }, 
+              icon: <Users className="w-4 h-4 mr-2" /> 
+            }
           ]}
         />
       )}
@@ -230,6 +283,11 @@ export default function ChallengesPage() {
           totalPages={data?.totalPages || 0}
         />
       )}
+
+      <BulkProgressDrawer 
+        jobId={bulkJobId} 
+        onClose={handleDrawerClose} 
+      />
     </div>
   );
 }
