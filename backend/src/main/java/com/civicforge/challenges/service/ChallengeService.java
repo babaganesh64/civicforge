@@ -125,7 +125,7 @@ public class ChallengeService {
             return challengeRepository.findBySubmittedByOrderByUpdatedAtDesc(actorId, pageable)
                 .map(ChallengeListItem::from);
         }
-        return challengeRepository.findWithFilters(filters.status(), filters.category(), filters.priority(), filters.submittedBy(), filters.search(), pageable)
+        return challengeRepository.findWithFilters(filters.status(), filters.category(), filters.priority(), filters.submittedBy(), filters.search() == null ? "" : filters.search(), pageable)
             .map(ChallengeListItem::from);
     }
 
