@@ -24,6 +24,7 @@ import com.civicforge.files.repository.FileMetadataRepository;
 import com.civicforge.files.service.FileStorageService;
 import com.civicforge.identity.security.UserRole;
 import com.civicforge.users.repository.UserRepository;
+import com.civicforge.ai.service.AiIntegrationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.context.ApplicationEventPublisher;
+import com.civicforge.common.events.ChallengeStatusChangedEvent;
 
 import java.time.Instant;
 import java.util.List;
@@ -51,6 +54,8 @@ public class ChallengeService {
     private final FileMetadataRepository fileMetadataRepository;
     private final AuditService auditService;
     private final UserRepository userRepository;
+    private final AiIntegrationService aiIntegrationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ChallengeDetailResponse submitChallenge(SubmitChallengeRequest req, UUID actorId) {
         if (!Boolean.TRUE.equals(req.consentGiven())) {
@@ -83,7 +88,9 @@ public class ChallengeService {
 
         recordHistory(challenge.getId(), ChallengeStatus.DRAFT, ChallengeStatus.SUBMITTED, ChallengeAction.SUBMIT, actorId, null, null);
 
-        auditService.logAudit("CHALLENGE_SUBMIT", actorId.toString(), challenge.getId().toString(), "Challenge submitted successfully");
+        auditService.audit("CHALLENGE_SUBMIT", "CHALLENGE", challenge.getId().toString(), "SUCCESS", java.util.Map.of("actorId", actorId.toString(), "notes", "Challenge submitted successfully"));
+
+        aiIntegrationService.triggerAiAnalysis(challenge.getId());
 
         return buildDetailResponse(challenge);
     }
@@ -107,7 +114,7 @@ public class ChallengeService {
             .build();
         evidenceRepository.save(evidence);
 
-        auditService.logAudit("CHALLENGE_ATTACH_EVIDENCE", actorId.toString(), challengeId.toString(), "Evidence attached");
+        auditService.audit("CHALLENGE_ATTACH_EVIDENCE", "CHALLENGE", challengeId.toString(), "SUCCESS", java.util.Map.of("actorId", actorId.toString(), "notes", "Evidence attached"));
 
         return buildDetailResponse(challenge);
     }
@@ -163,7 +170,11 @@ public class ChallengeService {
 
         challengeRepository.save(challenge);
         recordHistory(challenge.getId(), currentStatus, newStatus, req.action(), actorId, actorEmail, req.notes());
-        auditService.logAudit("CHALLENGE_ACTION", actorId.toString(), challenge.getId().toString(), "Action: " + req.action());
+        auditService.audit("CHALLENGE_ACTION", "CHALLENGE", challenge.getId().toString(), "SUCCESS", java.util.Map.of("actorId", actorId.toString(), "notes", "Action: " + req.action()));
+
+        if (currentStatus != newStatus) {
+            eventPublisher.publishEvent(new ChallengeStatusChangedEvent(this, challenge.getId(), currentStatus, newStatus, actorId, challenge.getSubmittedBy()));
+        }
 
         return buildDetailResponse(challenge);
     }

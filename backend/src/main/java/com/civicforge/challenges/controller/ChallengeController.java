@@ -49,7 +49,7 @@ public class ChallengeController {
         CivicForgeUserDetails user = principal();
         ChallengeFilterParams filters = new ChallengeFilterParams(status, category, priority, search, null);
         Pageable pageable = PageRequest.of(page, size);
-        Page<ChallengeListItem> result = challengeService.listChallenges(filters, pageable, user.getId(), user.getRole().name());
+        Page<ChallengeListItem> result = challengeService.listChallenges(filters, pageable, user.getUserId(), user.getAuthorities().iterator().next().getAuthority().replace("ROLE_", ""));
         return PageResponse.of(result);
     }
 
@@ -57,14 +57,15 @@ public class ChallengeController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<ChallengeDetailResponse> submitChallenge(@Valid @RequestBody SubmitChallengeRequest req) {
         CivicForgeUserDetails user = principal();
-        ChallengeDetailResponse res = challengeService.submitChallenge(req, user.getId());
+        ChallengeDetailResponse res = challengeService.submitChallenge(req, user.getUserId());
         return ApiResponse.success(res, "Challenge submitted successfully");
     }
 
     @GetMapping("/{id}")
+    @org.springframework.cache.annotation.Cacheable(value = "challenges", key = "#id")
     public ApiResponse<ChallengeDetailResponse> getChallenge(@PathVariable UUID id) {
         CivicForgeUserDetails user = principal();
-        ChallengeDetailResponse res = challengeService.getChallenge(id, user.getId(), user.getRole().name());
+        ChallengeDetailResponse res = challengeService.getChallenge(id, user.getUserId(), user.getAuthorities().iterator().next().getAuthority().replace("ROLE_", ""));
         return ApiResponse.success(res);
     }
 
@@ -75,21 +76,21 @@ public class ChallengeController {
         @RequestPart(required = false) String description
     ) {
         CivicForgeUserDetails user = principal();
-        ChallengeDetailResponse res = challengeService.attachEvidence(id, file, description, user.getId());
+        ChallengeDetailResponse res = challengeService.attachEvidence(id, file, description, user.getUserId());
         return ApiResponse.success(res, "Evidence attached successfully");
     }
 
     @PostMapping("/{id}/actions")
     public ApiResponse<ChallengeDetailResponse> performAction(@PathVariable UUID id, @Valid @RequestBody ReviewActionRequest req) {
         CivicForgeUserDetails user = principal();
-        ChallengeDetailResponse res = challengeService.performAction(id, req, user.getId(), user.getUsername(), user.getRole().name());
+        ChallengeDetailResponse res = challengeService.performAction(id, req, user.getUserId(), user.getUsername(), user.getAuthorities().iterator().next().getAuthority().replace("ROLE_", ""));
         return ApiResponse.success(res, "Action performed successfully");
     }
 
     @GetMapping("/{id}/history")
     public ApiResponse<List<ChallengeDetailResponse.HistoryItem>> getChallengeHistory(@PathVariable UUID id) {
         CivicForgeUserDetails user = principal();
-        ChallengeDetailResponse res = challengeService.getChallenge(id, user.getId(), user.getRole().name());
+        ChallengeDetailResponse res = challengeService.getChallenge(id, user.getUserId(), user.getAuthorities().iterator().next().getAuthority().replace("ROLE_", ""));
         return ApiResponse.success(res.history());
     }
 }

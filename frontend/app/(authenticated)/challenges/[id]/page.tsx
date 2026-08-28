@@ -17,6 +17,8 @@ import { format } from 'date-fns';
 import { EvidenceList } from '@/components/challenges/evidence-list';
 import { ChallengeTimeline } from '@/components/challenges/challenge-timeline';
 import { AiAnalysisCard } from '@/components/challenges/ai-analysis-card';
+import { SubmitEoiDialog } from '@/components/challenges/submit-eoi-dialog';
+import { EoiList } from '@/components/challenges/eoi-list';
 
 export default function ChallengeDetailPage() {
   const params = useParams();
@@ -27,6 +29,10 @@ export default function ChallengeDetailPage() {
   const { user } = useAuth();
 
   const isGovernment = [UserRole.GOVERNMENT_REVIEWER, UserRole.GOVERNMENT_MANAGER].includes(user?.userType as UserRole);
+  const isUniversityOrIndustry = [
+    UserRole.UNIVERSITY_ADMIN, UserRole.UNIVERSITY_MEMBER, UserRole.UNIVERSITY_PROJECT_MANAGER,
+    UserRole.INDUSTRY_ADMIN, UserRole.INDUSTRY_MEMBER
+  ].includes(user?.userType as UserRole);
 
   if (isLoading) {
     return (
@@ -89,6 +95,9 @@ export default function ChallengeDetailPage() {
                 </Link>
               </Button>
             )}
+            {isUniversityOrIndustry && challenge.status === 'PUBLISHED' && (
+              <SubmitEoiDialog challengeId={challenge.id} />
+            )}
           </div>
         </div>
       </div>
@@ -121,6 +130,7 @@ export default function ChallengeDetailPage() {
               <TabsTrigger value="evidence">Evidence ({challenge.evidence?.length || 0})</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
               {isGovernment && <TabsTrigger value="ai">AI Analysis</TabsTrigger>}
+              {isGovernment && challenge.status === 'PUBLISHED' && <TabsTrigger value="eoi">Expressions of Interest</TabsTrigger>}
             </TabsList>
             
             <TabsContent value="overview" className="space-y-6 mt-6">
@@ -220,6 +230,12 @@ export default function ChallengeDetailPage() {
             {isGovernment && (
               <TabsContent value="ai" className="mt-6">
                 <AiAnalysisCard analysis={challenge.aiAnalysis} />
+              </TabsContent>
+            )}
+
+            {isGovernment && challenge.status === 'PUBLISHED' && (
+              <TabsContent value="eoi" className="mt-6">
+                <EoiList challengeId={challenge.id} />
               </TabsContent>
             )}
           </Tabs>

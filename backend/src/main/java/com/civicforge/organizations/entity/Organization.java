@@ -1,6 +1,8 @@
 package com.civicforge.organizations.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 import java.time.Instant;
 import java.util.UUID;
@@ -36,9 +38,11 @@ public class Organization {
 
     private String geography;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String domains;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String capabilities;
 
@@ -48,6 +52,7 @@ public class Organization {
     @Column(name = "contact_phone")
     private String contactPhone;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String metadata;
 

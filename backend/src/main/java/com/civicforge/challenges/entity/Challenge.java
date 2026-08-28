@@ -99,6 +99,7 @@ public class Challenge {
     @Column(name = "clarification_request", columnDefinition = "TEXT")
     private String clarificationRequest;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String tags;
 

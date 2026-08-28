@@ -1,6 +1,8 @@
 package com.civicforge.challenges.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -39,12 +41,15 @@ public class ChallengeAiAnalysis {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String tags;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "similarity_candidates", columnDefinition = "jsonb")
     private String similarityCandidates;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "suggested_organizations", columnDefinition = "jsonb")
     private String suggestedOrganizations;
 
@@ -81,6 +86,7 @@ public class ChallengeAiAnalysis {
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "raw_response", columnDefinition = "jsonb")
     private String rawResponse;
 

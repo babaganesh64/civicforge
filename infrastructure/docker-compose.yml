@@ -67,23 +67,35 @@ services:
     depends_on:
       - prometheus
 
-#  backend:
-#    build:
-#      context: ../backend
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - postgres
-#      - redis
-#      - minio
-#
-#  frontend:
-#    build:
-#      context: ../frontend
-#    ports:
-#      - "3000:3000"
-#    environment:
-#      - NEXT_PUBLIC_API_URL=http://localhost:8080
+  backend:
+    build:
+      context: ../backend
+    ports:
+      - "8080:8080"
+    environment:
+      - AI_SERVICE_URL=http://ai-service:8000
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - ai-service
+
+  frontend:
+    build:
+      context: ../frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+
+  ai-service:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
 
 volumes:
   postgres_data:
@@ -91,3 +103,4 @@ volumes:
   minio_data:
   prometheus_data:
   grafana_data:
+

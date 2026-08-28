@@ -6,21 +6,19 @@ export enum BulkOperationStatus {
   PARTIAL_SUCCESS = 'PARTIAL_SUCCESS'
 }
 
-export interface BulkOperation {
+export interface BulkJobRequest {
+  operationType: string;
+  itemIds: string[];
+  parameters?: Record<string, any>;
+}
+
+export interface BulkJobResponse {
   id: string;
   operationType: string;
   status: BulkOperationStatus;
   totalItems: number;
-  processedItems: number;
-  failedItems: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface BulkOperationItem {
-  id: string;
-  bulkOperationId: string;
-  targetId: string;
-  status: string;
-  errorDetail?: string;
+  successCount: number;
+  errorCount: number;
+  requestedAt: string;
+  completedAt?: string;
 }

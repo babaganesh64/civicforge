@@ -1,96 +1,158 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-hooks';
-import { useMyOrganizations } from '@/hooks/useOrganizations';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { KpiCard } from '@/components/common/kpi-card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics';
+
+function GovernmentDashboard() {
+  const { data: metrics, isLoading } = useDashboardMetrics();
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">Total Challenges</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{metrics?.totalChallenges || 0}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">Pending Review</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{metrics?.pendingReview || 0}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">Active Projects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{metrics?.activeProjects || 0}</div>}
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity Feed</CardTitle>
+            <CardDescription>Latest updates across the platform</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Platform Engagement</CardTitle>
+            <CardDescription>Activity overview for the last 30 days</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[200px] flex items-center justify-center">
+            <Skeleton className="h-full w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function OrganizationDashboard() {
+  const { data: metrics, isLoading } = useDashboardMetrics();
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">Submitted EOIs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{metrics?.submittedEois || 0}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">Active Projects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{metrics?.activeProjects || 0}</div>}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function CitizenDashboard() {
+  const { data: metrics, isLoading } = useDashboardMetrics();
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">My Challenges</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{metrics?.myChallenges || 0}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">Active Projects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{metrics?.activeProjects || 0}</div>}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { data: organizations, isLoading: isLoadingOrgs, error: orgsError } = useMyOrganizations();
 
   if (!user) return null;
+
+  // Attempt to use 'role' if it exists, otherwise fallback to 'userType'
+  const userRole = (user as any).role || user.userType || '';
+  const isGovernment = userRole.includes('GOVERNMENT');
+  const isUniversity = userRole.includes('UNIVERSITY');
+  const isIndustry = userRole.includes('INDUSTRY');
+  
+  let DashboardContent = CitizenDashboard;
+  if (isGovernment) {
+    DashboardContent = GovernmentDashboard;
+  } else if (isUniversity || isIndustry) {
+    DashboardContent = OrganizationDashboard;
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user.displayName}!</h1>
         <p className="text-gray-500">
-          Here's an overview of your account and organizations.
+          Here&apos;s an overview of your account activity.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          label="Account Status"
-          value={user.status}
-          description={`Verified: ${user.identityVerified ? 'Yes' : 'No'}`}
-        />
-        <KpiCard
-          label="Account Type"
-          value={user.userType.replace(/_/g, ' ')}
-        />
-        <KpiCard
-          label="Active Challenges"
-          value="Coming Soon"
-          description="Platform feature"
-        />
-        <KpiCard
-          label="Your Submissions"
-          value="0"
-          description="Awaiting first submission"
-        />
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-2xl font-semibold tracking-tight">Your Organizations</h2>
-        
-        {isLoadingOrgs ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map(i => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        ) : orgsError ? (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-            Failed to load organizations.
-          </div>
-        ) : organizations && organizations.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {organizations.map((org) => (
-              <Card key={org.id}>
-                <CardHeader>
-                  <CardTitle className="text-xl">{org.name}</CardTitle>
-                  <CardDescription className="flex items-center space-x-2">
-                    <span>{org.type.replace(/_/g, ' ')}</span>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-500 line-clamp-2">
-                    {org.description || 'No description provided.'}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="bg-gray-50 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No organizations found</h3>
-              <p className="text-sm text-gray-500">
-                You are not a member of any organization yet.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      <DashboardContent />
     </div>
   );
 }
