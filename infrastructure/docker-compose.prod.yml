@@ -49,6 +49,7 @@ services:
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_PORT=6379
       - APP_JWT_SECRET=dGhpcy1pcy1hLXZlcnktc2VjdXJlLXNlY3JldC1rZXktdGhhdC1pcy1sb25nLWVub3VnaA==
+      - APP_AI_SERVICE_URL=http://ai-service:8000
     depends_on:
       - postgres
       - redis

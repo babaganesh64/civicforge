@@ -1,3 +1,4 @@
+cat << 'INNER_EOF' > /Users/babaganesh/civicforge/backend/src/main/java/com/civicforge/identity/security/JwtAuthFilter.java
 package com.civicforge.identity.security;
 
 import com.civicforge.common.audit.AuditContext;
@@ -62,3 +63,4 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         return null;
     }
 }
+INNER_EOF

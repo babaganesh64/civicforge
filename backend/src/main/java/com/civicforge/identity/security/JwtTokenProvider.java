@@ -61,6 +61,17 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public CivicForgeUserDetails getUserDetailsFromJWT(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        UUID id = UUID.fromString(claims.getSubject());
+        String email = claims.get("email", String.class);
+        String roles = claims.get("roles", String.class);
+        return new CivicForgeUserDetails(id, email, "", java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority(roles)), true);
+    }
     public UUID getUserIdFromJWT(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(key)
