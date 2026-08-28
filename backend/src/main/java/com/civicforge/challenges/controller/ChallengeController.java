@@ -62,7 +62,6 @@ public class ChallengeController {
     }
 
     @GetMapping("/{id}")
-    @org.springframework.cache.annotation.Cacheable(value = "challenges", key = "#id")
     public ApiResponse<ChallengeDetailResponse> getChallenge(@PathVariable UUID id) {
         CivicForgeUserDetails user = principal();
         ChallengeDetailResponse res = challengeService.getChallenge(id, user.getUserId(), user.getAuthorities().iterator().next().getAuthority().replace("ROLE_", ""));
@@ -76,7 +75,7 @@ public class ChallengeController {
         @RequestPart(required = false) String description
     ) {
         CivicForgeUserDetails user = principal();
-        ChallengeDetailResponse res = challengeService.attachEvidence(id, file, description, user.getUserId());
+        ChallengeDetailResponse res = challengeService.attachEvidence(id, file, description, user.getUserId(), user.getAuthorities().iterator().next().getAuthority().replace("ROLE_", ""));
         return ApiResponse.success(res, "Evidence attached successfully");
     }
 

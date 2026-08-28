@@ -39,7 +39,6 @@ public class BulkOperationService {
     @org.springframework.context.annotation.Lazy
     private BulkOperationService self;
 
-    @Transactional
     public BulkJobResponse submitBulkJob(BulkJobRequest req, UUID actorId, String actorEmail, String actorRole) {
         if (!UserRole.GOVERNMENT_MANAGER.name().equals(actorRole) && !UserRole.PLATFORM_ADMIN.name().equals(actorRole)) {
             throw new CivicForgeException(ErrorCode.BULK_PERMISSION_DENIED, "Access denied", HttpStatus.FORBIDDEN);
@@ -104,11 +103,19 @@ public class BulkOperationService {
                     ReviewActionRequest reviewReq = new ReviewActionRequest(ChallengeAction.PUBLISH, "Bulk Publish", null, null, null);
                     challengeService.performAction(UUID.fromString(item.getResourceId()), reviewReq, actorId, actorEmail, actorRole);
                 } else if ("CHANGE_STATUS".equals(req.operationType())) {
-                    // Extract new status or action from parameters
                     String actionStr = (String) req.parameters().get("action");
                     ChallengeAction action = ChallengeAction.valueOf(actionStr);
                     ReviewActionRequest reviewReq = new ReviewActionRequest(action, "Bulk Change Status", null, null, null);
                     challengeService.performAction(UUID.fromString(item.getResourceId()), reviewReq, actorId, actorEmail, actorRole);
+                } else if ("ASSIGN_ORGANIZATION".equals(req.operationType())) {
+                    String orgIdStr = (String) req.parameters().get("assignToOrganizationId");
+                    if (orgIdStr == null) {
+                        orgIdStr = (String) req.parameters().get("organizationId");
+                    }
+                    ReviewActionRequest reviewReq = new ReviewActionRequest(ChallengeAction.ROUTE, "Bulk Assign", null, null, UUID.fromString(orgIdStr));
+                    challengeService.performAction(UUID.fromString(item.getResourceId()), reviewReq, actorId, actorEmail, actorRole);
+                } else {
+                    throw new RuntimeException("Unknown operation type: " + req.operationType());
                 }
                 
                 item.setStatus("SUCCESS");
