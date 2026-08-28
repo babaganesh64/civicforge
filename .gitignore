@@ -1,0 +1,41 @@
+# Java
+*.class
+*.jar
+*.war
+target/
+.mvn/
+
+# Node
+node_modules/
+.next/
+.turbo/
+dist/
+build/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+data/
+
+# Grafana provisioning data
+infrastructure/grafana/data/

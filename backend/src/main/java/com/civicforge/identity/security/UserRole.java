@@ -1,0 +1,13 @@
+package com.civicforge.identity.security;
+
+public enum UserRole {
+    CITIZEN, 
+    UNIVERSITY_ADMIN, 
+    UNIVERSITY_PROJECT_MANAGER, 
+    UNIVERSITY_MEMBER,
+    INDUSTRY_ADMIN, 
+    INDUSTRY_MEMBER, 
+    GOVERNMENT_REVIEWER, 
+    GOVERNMENT_MANAGER, 
+    PLATFORM_ADMIN
+}

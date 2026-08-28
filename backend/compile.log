@@ -1,0 +1,19 @@
+The operation couldn’t be completed. Unable to locate a Java Runtime.
+Please visit http://www.java.com for information on installing Java.
+
+[INFO] Scanning for projects...
+Downloading from central: https://repo.maven.apache.org/maven2/software/amazon/awssdk/bom/2.25.60/bom-2.25.60.pom
+[ERROR] [ERROR] Some problems were encountered while processing the POMs:
+[ERROR] Non-resolvable import POM: The following artifacts could not be resolved: software.amazon.awssdk:bom:pom:2.25.60 (absent): Could not transfer artifact software.amazon.awssdk:bom:pom:2.25.60 from/to central (https://repo.maven.apache.org/maven2): repo.maven.apache.org: nodename nor servname provided, or not known @ line 148, column 25
+ @ 
+[ERROR] The build could not read 1 project -> [Help 1]
+[ERROR]   
+[ERROR]   The project com.civicforge:civicforge-backend:0.0.1-SNAPSHOT (/Users/babaganesh/civicforge/backend/pom.xml) has 1 error
+[ERROR]     Non-resolvable import POM: The following artifacts could not be resolved: software.amazon.awssdk:bom:pom:2.25.60 (absent): Could not transfer artifact software.amazon.awssdk:bom:pom:2.25.60 from/to central (https://repo.maven.apache.org/maven2): repo.maven.apache.org: nodename nor servname provided, or not known @ line 148, column 25: Unknown host repo.maven.apache.org: nodename nor servname provided, or not known -> [Help 2]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/ProjectBuildingException
+[ERROR] [Help 2] http://cwiki.apache.org/confluence/display/MAVEN/UnresolvableModelException
