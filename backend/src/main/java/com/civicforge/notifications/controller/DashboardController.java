@@ -36,18 +36,18 @@ public class DashboardController {
         long totalOrganizations = 0;
         
         if (principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_GOVERNMENT_MANAGER"))) {
-            activeChallenges = challengeRepository.countByStatus(ChallengeStatus.PUBLISHED);
-            pendingReviews = challengeRepository.countByStatus(ChallengeStatus.UNDER_REVIEW);
+            activeChallenges = challengeRepository.count();
+            pendingReviews = challengeRepository.countByStatus(ChallengeStatus.SUBMITTED) + challengeRepository.countByStatus(ChallengeStatus.UNDER_REVIEW);
             activeProjects = projectRepository.countByStatus("ACTIVE");
             totalOrganizations = organizationRepository.count();
         } else if (principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_SYSTEM_ADMIN"))) {
-            activeChallenges = challengeRepository.countByStatus(ChallengeStatus.PUBLISHED);
-            pendingReviews = challengeRepository.countByStatus(ChallengeStatus.UNDER_REVIEW);
+            activeChallenges = challengeRepository.count();
+            pendingReviews = challengeRepository.countByStatus(ChallengeStatus.SUBMITTED) + challengeRepository.countByStatus(ChallengeStatus.UNDER_REVIEW);
             activeProjects = projectRepository.countByStatus("ACTIVE");
             totalOrganizations = organizationRepository.count();
         } else {
             // For CITIZEN or ORG_ADMIN, we can just return basic stats or user-specific stats
-            activeChallenges = challengeRepository.countByStatus(ChallengeStatus.PUBLISHED);
+            activeChallenges = challengeRepository.count();
             activeProjects = projectRepository.countByStatus("ACTIVE");
         }
         

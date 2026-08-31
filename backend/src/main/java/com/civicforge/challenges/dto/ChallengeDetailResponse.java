@@ -2,7 +2,6 @@ package com.civicforge.challenges.dto;
 
 import com.civicforge.challenges.domain.ChallengePriority;
 import com.civicforge.challenges.domain.ChallengeStatus;
-import com.civicforge.challenges.domain.ChallengeAction;
 
 import java.math.BigDecimal;
 import java.time.Instant;
