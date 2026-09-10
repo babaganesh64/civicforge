@@ -22,7 +22,7 @@ public class JwtTokenProvider {
     public JwtTokenProvider(@Value("${app.jwt.secret}") String jwtSecret,
                             @Value("${app.jwt.expiration-ms}") long jwtExpirationInMs,
                             @Value("${app.jwt.refresh-expiration-ms}") long refreshExpirationInMs) {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        byte[] keyBytes = jwtSecret.getBytes();
         if(keyBytes.length < 32) {
             // pad if less than 256 bits (32 bytes)
             byte[] padded = new byte[32];

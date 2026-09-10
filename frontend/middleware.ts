@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const publicPaths = ['/login', '/register'];
-
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const isPublic = publicPaths.some(p => pathname.startsWith(p));
-  
-  if (pathname === '/') {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  
+export function middleware(_request: NextRequest) {
+  // Authentication is enforced by the authenticated layout because access tokens
+  // are stored client-side. Keep the public landing page accessible for the SIH demo.
   return NextResponse.next();
 }
 

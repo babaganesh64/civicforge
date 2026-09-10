@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 public interface ChallengeRepository extends JpaRepository<Challenge, UUID> {
@@ -34,6 +35,25 @@ public interface ChallengeRepository extends JpaRepository<Challenge, UUID> {
     );
 
     Page<Challenge> findBySubmittedByOrderByUpdatedAtDesc(UUID submittedBy, Pageable pageable);
+
+    @Query("""
+        SELECT c FROM Challenge c
+        WHERE (c.isPublic = true OR c.assignedOrgId IN :organizationIds)
+        AND (:status IS NULL OR c.status = :status)
+        AND (:category IS NULL OR c.category = :category)
+        AND (:priority IS NULL OR c.priority = :priority)
+        AND (:search IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%'))
+             OR LOWER(c.description) LIKE LOWER(CONCAT('%', :search, '%')))
+        ORDER BY c.updatedAt DESC
+    """)
+    Page<Challenge> findVisibleToOrganizations(
+        @Param("organizationIds") List<UUID> organizationIds,
+        @Param("status") ChallengeStatus status,
+        @Param("category") String category,
+        @Param("priority") ChallengePriority priority,
+        @Param("search") String search,
+        Pageable pageable
+    );
 
     long countByStatus(ChallengeStatus status);
 

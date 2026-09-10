@@ -94,8 +94,9 @@ export interface ChallengeDetailResponse {
  submittedAt: string;
  verifiedAt: string | null;
  rejectionReason: string | null;
- clarificationRequest: string | null;
- isPublic: boolean;
+  clarificationRequest: string | null;
+  assignedOrgId: string | null;
+  isPublic: boolean;
  createdAt: string;
  updatedAt: string;
  evidence: EvidenceItem[];
