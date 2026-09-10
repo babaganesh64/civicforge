@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record OrganizationDto(
     UUID id,
+    String referenceId,
     String name,
     String shortName,
     String orgType,
@@ -18,6 +19,7 @@ public record OrganizationDto(
     public static OrganizationDto from(Organization org) {
         return new OrganizationDto(
             org.getId(),
+            org.getReferenceId(),
             org.getName(),
             org.getShortName(),
             org.getOrgType(),

@@ -22,7 +22,9 @@ public class Organization {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "short_name")
+    @Column(name = "reference_id", unique = true)
+    private String referenceId;
+
     private String shortName;
 
     @Column(name = "org_type", nullable = false)
@@ -68,6 +70,9 @@ public class Organization {
 
     @PrePersist
     protected void onCreate() {
+        if (this.referenceId == null) {
+            this.referenceId = "ORG-" + java.util.UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        }
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }

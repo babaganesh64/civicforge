@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useChallenge, useChallengeAction } from '@/hooks/useChallenges';
+import { useOrganizations } from '@/hooks/useOrganizations';
 import { useAuth } from '@/lib/auth-hooks';
 import { UserRole } from '@/types/user';
 import { ChallengePriority } from '@/types/challenge';
@@ -26,12 +27,15 @@ export default function ChallengeReviewPage() {
   
   const { data: challenge, isLoading } = useChallenge(id);
   const actionMutation = useChallengeAction(id);
+  const { data: universitiesPage, isLoading: isUniversitiesLoading } = useOrganizations('UNIVERSITY');
+  const { data: industriesPage, isLoading: isIndustriesLoading } = useOrganizations('INDUSTRY');
   const { user } = useAuth();
 
   const [rejectReason, setRejectReason] = useState('');
   const [clarification, setClarification] = useState('');
   const [category, setCategory] = useState<string>('');
   const [priority, setPriority] = useState<string>('');
+  const [organizationId, setOrganizationId] = useState<string>('');
 
   const isGovernment = [UserRole.GOVERNMENT_REVIEWER, UserRole.GOVERNMENT_MANAGER].includes(user?.userType as UserRole);
 
@@ -66,6 +70,8 @@ export default function ChallengeReviewPage() {
   };
 
   const hasAction = (action: string) => challenge.validActions?.includes(action);
+  const routePartners = [...(universitiesPage?.content || []), ...(industriesPage?.content || [])]
+    .filter((organization) => organization.active && organization.verificationStatus === 'VERIFIED');
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
@@ -177,6 +183,15 @@ export default function ChallengeReviewPage() {
 
           {/* Action Cards */}
           <div className="space-y-4">
+            {hasAction('START_REVIEW') && (
+              <Card className="border-primary/30">
+                <CardHeader className="pb-2"><CardTitle className="text-base">Begin Review</CardTitle></CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">Open this submission for verification, classification, and routing.</p>
+                  <Button className="w-full" onClick={() => handleAction('START_REVIEW')} disabled={actionMutation.isPending}>Start review</Button>
+                </CardContent>
+              </Card>
+            )}
             
             {hasAction('VERIFY') && (
               <Card>
@@ -228,6 +243,24 @@ export default function ChallengeReviewPage() {
                   >
                     Apply Priority
                   </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {hasAction('ROUTE') && (
+              <Card className="border-emerald-200 bg-emerald-50/30">
+                <CardHeader className="pb-2"><CardTitle className="text-base">Route to a Partner</CardTitle><CardDescription>Assign ownership to a verified university or industry partner.</CardDescription></CardHeader>
+                <CardContent className="space-y-3">
+                  <Select value={organizationId} onValueChange={setOrganizationId}>
+                    <SelectTrigger><SelectValue placeholder={isUniversitiesLoading || isIndustriesLoading ? 'Loading partners...' : 'Select a verified partner'} /></SelectTrigger>
+                    <SelectContent>
+                      {routePartners.map((organization) => (
+                        <SelectItem key={organization.id} value={organization.id}>{organization.name} · {organization.orgType === 'UNIVERSITY' ? 'University' : 'Industry'}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {routePartners.length === 0 && !isUniversitiesLoading && !isIndustriesLoading && <p className="text-sm text-amber-700">No verified partners are available. Verify an organization before routing.</p>}
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => handleAction('ROUTE', { assignToOrganizationId: organizationId })} disabled={!organizationId || actionMutation.isPending}>Assign and route</Button>
                 </CardContent>
               </Card>
             )}

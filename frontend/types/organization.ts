@@ -1,8 +1,13 @@
 export interface Organization {
   id: string;
+  referenceId: string;
   name: string;
-  type: string;
-  description?: string;
+  shortName: string;
+  orgType: string;
+  verificationStatus: string;
+  geography: string;
+  contactEmail: string;
+  active: boolean;
   createdAt: string;
 }
 

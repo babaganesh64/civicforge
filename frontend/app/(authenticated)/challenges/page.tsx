@@ -232,31 +232,45 @@ export default function ChallengesPage() {
         <BulkToolbar 
           selectedCount={selectedCount}
           onClear={() => setRowSelection({})}
-          actions={[
+                    actions={[
             { 
-              label: 'Publish Selected', 
-              onClick: () => handleBulkAction('PUBLISH'), 
-              icon: <Send className="w-4 h-4 mr-2" /> 
+              label: 'Assign Dept', 
+              onClick: () => {
+                const orgId = prompt("Enter Organization ID to assign:");
+                if (orgId) handleBulkAction('ASSIGN_ORGANIZATION', { organizationId: orgId });
+              }, 
+              icon: <Users className="w-4 h-4 mr-2" /> 
+            },
+            { 
+              label: 'Change Priority', 
+              onClick: () => {
+                const newPriority = prompt("Enter new priority (CRITICAL, HIGH, MEDIUM, LOW):");
+                if (newPriority) handleBulkAction('CHANGE_PRIORITY', { priority: newPriority.toUpperCase() });
+              }, 
+              icon: <FileEdit className="w-4 h-4 mr-2" /> 
             },
             { 
               label: 'Change Status', 
               onClick: () => {
                 const newStatus = prompt("Enter new status (e.g. IN_PROGRESS, RESOLVED):");
-                if (newStatus) {
-                  handleBulkAction('CHANGE_STATUS', { status: newStatus });
-                }
+                if (newStatus) handleBulkAction('CHANGE_STATUS', { status: newStatus });
               }, 
-              icon: <FileEdit className="w-4 h-4 mr-2" /> 
+              icon: <CheckCircle className="w-4 h-4 mr-2" /> 
             },
             { 
-              label: 'Assign Organization', 
+              label: 'Categorize', 
               onClick: () => {
-                const orgId = prompt("Enter Organization ID to assign:");
-                if (orgId) {
-                  handleBulkAction('ASSIGN_ORGANIZATION', { organizationId: orgId });
-                }
+                const newCategory = prompt("Enter new category:");
+                if (newCategory) handleBulkAction('CATEGORIZE', { category: newCategory });
               }, 
-              icon: <Users className="w-4 h-4 mr-2" /> 
+              icon: <Send className="w-4 h-4 mr-2" /> 
+            },
+            { 
+              label: 'Archive', 
+              onClick: () => {
+                if (confirm("Are you sure you want to archive these challenges?")) handleBulkAction('ARCHIVE');
+              }, 
+              icon: <Archive className="w-4 h-4 mr-2" /> 
             }
           ]}
         />

@@ -10,7 +10,6 @@ import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
-import java.util.UUID;
 import java.security.SecureRandom;
 
 @Entity
@@ -105,6 +104,9 @@ public class Challenge {
 
     @Column(name = "is_public", nullable = false)
     private boolean isPublic;
+
+    @Column(name = "assigned_org_id")
+    private UUID assignedOrgId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

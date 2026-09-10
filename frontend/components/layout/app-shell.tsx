@@ -11,12 +11,12 @@ export function AppShell({ children, userRole }: { children: React.ReactNode, us
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
-          {children}
+        <main className="flex-1 overflow-y-auto p-5 md:p-8">
+          <div className="page-enter mx-auto max-w-[1600px]">{children}</div>
         </main>
       </div>
     </div>

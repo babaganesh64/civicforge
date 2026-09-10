@@ -23,6 +23,9 @@ import com.civicforge.files.entity.FileMetadata;
 import com.civicforge.files.repository.FileMetadataRepository;
 import com.civicforge.files.service.FileStorageService;
 import com.civicforge.identity.security.UserRole;
+import com.civicforge.organizations.entity.Organization;
+import com.civicforge.organizations.repository.OrganizationMemberRepository;
+import com.civicforge.organizations.repository.OrganizationRepository;
 import com.civicforge.users.repository.UserRepository;
 import com.civicforge.ai.service.AiIntegrationService;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +59,8 @@ public class ChallengeService {
     private final UserRepository userRepository;
     private final AiIntegrationService aiIntegrationService;
     private final ApplicationEventPublisher eventPublisher;
+    private final OrganizationRepository organizationRepository;
+    private final OrganizationMemberRepository organizationMemberRepository;
 
     public ChallengeDetailResponse submitChallenge(SubmitChallengeRequest req, UUID actorId) {
         if (!Boolean.TRUE.equals(req.consentGiven())) {
@@ -129,6 +134,16 @@ public class ChallengeService {
             return challengeRepository.findBySubmittedByOrderByUpdatedAtDesc(actorId, pageable)
                 .map(ChallengeListItem::from);
         }
+        if (isPartnerRole(actorRole)) {
+            List<UUID> organizationIds = organizationIdsFor(actorId);
+            if (organizationIds.isEmpty()) {
+                return Page.empty(pageable);
+            }
+            return challengeRepository.findVisibleToOrganizations(
+                    organizationIds, filters.status(), filters.category(), filters.priority(),
+                    filters.search() == null ? "" : filters.search(), pageable)
+                .map(ChallengeListItem::from);
+        }
         return challengeRepository.findWithFilters(filters.status(), filters.category(), filters.priority(), filters.submittedBy(), filters.search() == null ? "" : filters.search(), pageable)
             .map(ChallengeListItem::from);
     }
@@ -142,6 +157,9 @@ public class ChallengeService {
             if (!challenge.getSubmittedBy().equals(actorId) && !challenge.isPublic()) {
                 throw new CivicForgeException(ErrorCode.CHALLENGE_ACCESS_DENIED, "Access denied", HttpStatus.FORBIDDEN);
             }
+        }
+        if (isPartnerRole(actorRole) && !challenge.isPublic() && !organizationIdsFor(actorId).contains(challenge.getAssignedOrgId())) {
+            throw new CivicForgeException(ErrorCode.CHALLENGE_ACCESS_DENIED, "This challenge is not assigned to your organization", HttpStatus.FORBIDDEN);
         }
         return buildDetailResponse(challenge);
     }
@@ -170,6 +188,17 @@ public class ChallengeService {
             challenge.setPriority(req.priority());
         } else if (req.action() == ChallengeAction.PUBLISH) {
             challenge.setPublic(true);
+        } else if (req.action() == ChallengeAction.ROUTE) {
+            if (req.assignToOrganizationId() == null) {
+                throw new CivicForgeException(ErrorCode.VALIDATION_ERROR, "Select an organization before routing this challenge", HttpStatus.BAD_REQUEST);
+            }
+            Organization organization = organizationRepository.findById(req.assignToOrganizationId())
+                .orElseThrow(() -> new CivicForgeException(ErrorCode.ORG_NOT_FOUND, "Organization not found", HttpStatus.NOT_FOUND));
+            if (!organization.isActive() || !"VERIFIED".equals(organization.getVerificationStatus())
+                    || (!"UNIVERSITY".equals(organization.getOrgType()) && !"INDUSTRY".equals(organization.getOrgType()))) {
+                throw new CivicForgeException(ErrorCode.VALIDATION_ERROR, "Challenges can only be routed to an active, verified university or industry partner", HttpStatus.BAD_REQUEST);
+            }
+            challenge.setAssignedOrgId(organization.getId());
         }
 
         challengeRepository.save(challenge);
@@ -240,6 +269,20 @@ public class ChallengeService {
         historyRepository.save(history);
     }
 
+    private boolean isPartnerRole(String actorRole) {
+        return UserRole.UNIVERSITY_ADMIN.name().equals(actorRole)
+            || UserRole.UNIVERSITY_PROJECT_MANAGER.name().equals(actorRole)
+            || UserRole.UNIVERSITY_MEMBER.name().equals(actorRole)
+            || UserRole.INDUSTRY_ADMIN.name().equals(actorRole)
+            || UserRole.INDUSTRY_MEMBER.name().equals(actorRole);
+    }
+
+    private List<UUID> organizationIdsFor(UUID userId) {
+        return organizationMemberRepository.findByUserIdAndStatus(userId, "ACTIVE").stream()
+            .map(member -> member.getOrganizationId())
+            .toList();
+    }
+
     private ChallengeDetailResponse buildDetailResponse(Challenge c) {
         List<ChallengeDetailResponse.EvidenceItem> evidence = evidenceRepository.findByChallengeIdOrderByUploadedAtAsc(c.getId()).stream()
             .map(e -> new ChallengeDetailResponse.EvidenceItem(e.getId(), e.getFileId(), e.getFileName(), e.getDescription(), e.getUploadedAt()))
@@ -262,7 +305,7 @@ public class ChallengeService {
             c.getLocationDescription(), c.getStateProvince(), c.getCity(), c.getPincode(), c.getLatitude(), c.getLongitude(),
             c.getAffectedPopulationEstimate(), c.getAffectedPopulationNotes(), c.getUrgency(), c.getExpectedOutcome(),
             c.isConsentGiven(), c.getStatus(), c.getPriority(), c.getSubmittedBy(), c.getSubmittedAt(), c.getVerifiedAt(),
-            c.getRejectionReason(), c.getClarificationRequest(), c.isPublic(), c.getCreatedAt(), c.getUpdatedAt(),
+            c.getRejectionReason(), c.getClarificationRequest(), c.getAssignedOrgId(), c.isPublic(), c.getCreatedAt(), c.getUpdatedAt(),
             evidence, history, aiAnalysis, validActions
         );
     }

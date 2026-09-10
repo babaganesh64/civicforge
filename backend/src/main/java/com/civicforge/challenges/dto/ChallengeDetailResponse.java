@@ -33,6 +33,7 @@ public record ChallengeDetailResponse(
     Instant verifiedAt,
     String rejectionReason,
     String clarificationRequest,
+    UUID assignedOrgId,
     boolean isPublic,
     Instant createdAt,
     Instant updatedAt,
