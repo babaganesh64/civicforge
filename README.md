@@ -105,7 +105,7 @@ This project was built with ❤️ by **Team Codex**.
 * **Lead Backend Developer:** Baba Ganesh Upputella
 * **Backend Architect:** Rajesh Gorsa
 * **Frontend Architects:** Nalukurthi Chandu, Goli Balaram
-* **Research & Documentation Team:** Shaik Fathima Zoya, R. Mallika
+* **Research & Documentation Team:** Shaik Fathima Zoya, Rapuri Mallika
 
 ### 🛠️ Tools & Technologies Credits
 * **Google Antigravity** *(Coding)*
