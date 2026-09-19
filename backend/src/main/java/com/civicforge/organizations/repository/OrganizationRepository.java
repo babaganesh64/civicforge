@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface OrganizationRepository extends JpaRepository<Organization, UUID> {
     Page<Organization> findByOrgTypeAndActive(String orgType, boolean active, Pageable pageable);
     List<Organization> findByActive(boolean active);
+    java.util.Optional<Organization> findByReferenceId(String referenceId);
 }
