@@ -1,4 +1,5 @@
 'use client';
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +57,7 @@ export default function OrganizationsPage() {
             </TableCell>
             <TableCell className="text-slate-500">{org.createdAt ? formatDistanceToNow(new Date(org.createdAt), { addSuffix: true }) : 'N/A'}</TableCell>
             <TableCell className="text-right">
-              <Button variant="ghost" size="sm">Manage <ArrowRight className="ml-2 w-4 h-4"/></Button>
+              <Link href={`/organizations/${org.id}`}><Button variant="ghost" size="sm">Manage <ArrowRight className="ml-2 w-4 h-4"/></Button></Link>
             </TableCell>
           </TableRow>
         ))}

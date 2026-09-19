@@ -7,6 +7,7 @@ import com.civicforge.bulk.entity.BulkOperation;
 import com.civicforge.bulk.entity.BulkOperationItem;
 import com.civicforge.bulk.repository.BulkOperationItemRepository;
 import com.civicforge.bulk.repository.BulkOperationRepository;
+import com.civicforge.organizations.repository.OrganizationRepository;
 import com.civicforge.challenges.domain.ChallengeAction;
 import com.civicforge.challenges.dto.ReviewActionRequest;
 import com.civicforge.challenges.service.ChallengeService;
@@ -34,6 +35,7 @@ public class BulkOperationService {
     private final BulkOperationItemRepository bulkOperationItemRepository;
     private final ChallengeService challengeService;
     private final AuditService auditService;
+    private final OrganizationRepository organizationRepository;
     
     @org.springframework.beans.factory.annotation.Autowired
     @org.springframework.context.annotation.Lazy
@@ -85,7 +87,6 @@ public class BulkOperationService {
     }
 
     @Async
-    @Transactional
     public void processBulkJob(UUID operationId, BulkJobRequest req, UUID actorId, String actorEmail, String actorRole) {
         BulkOperation operation = bulkOperationRepository.findById(operationId).orElseThrow();
         operation.setStatus("IN_PROGRESS");
@@ -112,7 +113,13 @@ public class BulkOperationService {
                     if (orgIdStr == null) {
                         orgIdStr = (String) req.parameters().get("organizationId");
                     }
-                    ReviewActionRequest reviewReq = new ReviewActionRequest(ChallengeAction.ROUTE, "Bulk Assign", null, null, UUID.fromString(orgIdStr));
+                    UUID targetOrgId = null;
+                    if (orgIdStr.startsWith("ORG-")) {
+                        targetOrgId = organizationRepository.findByReferenceId(orgIdStr).map(com.civicforge.organizations.entity.Organization::getId).orElseThrow(() -> new IllegalArgumentException("Organization not found"));
+                    } else {
+                        targetOrgId = UUID.fromString(orgIdStr);
+                    }
+                    ReviewActionRequest reviewReq = new ReviewActionRequest(ChallengeAction.ROUTE, "Bulk Assign", null, null, targetOrgId);
                     challengeService.performAction(UUID.fromString(item.getResourceId()), reviewReq, actorId, actorEmail, actorRole);
                 } else {
                     throw new RuntimeException("Unknown operation type: " + req.operationType());
